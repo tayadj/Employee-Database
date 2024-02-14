@@ -18,6 +18,7 @@ namespace project
 	std::string			textFileName;
 	std::string			records;
 	std::string			wages;
+	std::string			buffer;
 	employee			object;
 
 	void terminate(int status)
@@ -195,7 +196,14 @@ namespace project
 		CloseHandle(processInfo.hProcess);
 		CloseHandle(processInfo.hThread);
 
-		std::clog << "\Text file created.";
+		std::clog << "\nText file created. Review:\n";
+		textFile.open(textFileName, std::ios::in);
+		while (!textFile.eof())
+		{
+			std::getline(textFile, buffer);
+			std::clog << buffer << '\n';
+		}
+		textFile.close();
 	}
 }
 
@@ -206,6 +214,7 @@ int main(int argc, char* argv[])
 	project::openCreator();
 	project::receiveDataReporter();
 	project::openReporter();
+	std::clog << "Finishing project...\n\n";
 	return 0;
 }
 
