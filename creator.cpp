@@ -5,13 +5,12 @@ namespace project
 	std::fstream		binaryFile;
 	std::string			binaryFileName;
 	std::string			textFileName;
-	int					records;
-
 	employee			object;
 	std::string			objectName;
 	std::string			objectHours;
 	std::string			objectID;
-
+	int					records;
+	
 	void terminate(int status)
 	{
 		switch (status)
@@ -96,8 +95,12 @@ namespace project
 			{
 				for (size_t i = 0; i < records; i++)
 				{
-					std::cout << "Enter employee " << i + 1 << ":\n";
-					std::cin >> objectID >> objectName >> objectHours;
+					std::cout << "\nEnter employee " << i + 1 << ":\nID: ";
+					std::cin >> objectID;
+					std::cout << "Name: ";
+					std::cin >> objectName;
+					std::cout << "Hours: ";
+					std::cin >> objectHours;
 					if (!checker(1)) { terminate(1); }
 					if (!checker(2)) { terminate(2); }
 					if (!checker(3)) { terminate(3); }

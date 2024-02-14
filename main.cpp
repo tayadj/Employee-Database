@@ -7,15 +7,18 @@ namespace project
 	std::string			cmdReporter;
 	std::wstring		cmdReporter_;
 
-	LPWSTR				cmdProcessCode;
+	LPWSTR				cmdCreatorCode;	
+	LPWSTR				cmdReporterCode;
 	STARTUPINFO			settingsInfo;
 	PROCESS_INFORMATION processInfo;
 
-	std::fstream		inputFile;
-	std::fstream		outputFile;
+	std::fstream		binaryFile;
+	std::fstream		textFile;
 	std::string			binaryFileName;
 	std::string			textFileName;
 	std::string			records;
+	std::string			wages;
+	employee			object;
 
 	void terminate(int status)
 	{
@@ -31,6 +34,16 @@ namespace project
 				std::cerr << "Oops! The amount of records must be a positive number.";
 				exit(0);
 			}
+			case 3:
+			{
+				std::cerr << "Oops! The text file's name must be next format: \'fileName.txt\'";
+				exit(0);
+			}
+			case 4:
+			{
+				std::cerr << "Oops! The amount of wages must be a positive number.";
+				exit(0);
+			}
 		}
 	}
 
@@ -41,7 +54,6 @@ namespace project
 		{
 			case 1:
 			{
-
 				if (binaryFileName.length() < 5 || binaryFileName.substr(binaryFileName.length() - 4) != ".bin")
 				{
 					result = false;
@@ -52,7 +64,10 @@ namespace project
 			{
 				try
 				{
-					std::stoi(records);
+					if (std::stoi(records) == 0)
+					{
+						result = false;
+					}
 				}
 				catch (...)
 				{
@@ -64,13 +79,39 @@ namespace project
 				}
 				break;
 			}
+			case 3:
+			{
+				if (textFileName.length() < 5 || textFileName.substr(textFileName.length() - 4) != ".txt")
+				{
+					result = false;
+				}
+				break;
+			}
+			case 4:
+			{
+				try
+				{
+					if (std::stoi(wages) == 0)
+					{
+						result = false;
+					}
+				}
+				catch (...)
+				{
+					result = false;
+				}
+				if (wages[0] == '-')
+				{
+					result = false;
+				}
+				break;
+			}
 		}
 		return result;
 	}
 
-	void receiveData()
+	void receiveDataCreator()
 	{
-		std::clog << "Starting project...\n";
 		std::cout << "Input the binary file name: ";
 		std::cin >> binaryFileName;
 		if (!checker(1)) { terminate(1); }
@@ -79,17 +120,12 @@ namespace project
 		if (!checker(2)) { terminate(2); }
 	}
 
-	void printFile()
-	{
-
-	}
-
 	void openCreator()
 	{
 		cmdCreator = "creator.exe " + binaryFileName + " " + records;
 		cmdCreator_ = std::wstring(cmdCreator.begin(), cmdCreator.end());
 
-		cmdProcessCode = &cmdCreator_[0];
+		cmdCreatorCode = &cmdCreator_[0];
 
 		ZeroMemory(&settingsInfo, sizeof(STARTUPINFO));
 		settingsInfo.cb = sizeof(STARTUPINFO);
@@ -97,7 +133,7 @@ namespace project
 
 		try
 		{
-			if (!CreateProcess(nullptr, cmdProcessCode, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &settingsInfo, &processInfo))
+			if (!CreateProcess(nullptr, cmdCreatorCode, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &settingsInfo, &processInfo))
 			{
 				std::cerr << "Process creator.exe failed. Error code: " << GetLastError() << "\n";
 				exit(GetLastError());
@@ -113,18 +149,63 @@ namespace project
 
 		CloseHandle(processInfo.hProcess);
 		CloseHandle(processInfo.hThread);
+
+		std::clog << "\nBinary file created. Review:\nID\t\t\tName\t\t\tHours\n";
+		binaryFile.open(binaryFileName, std::ios::binary | std::ios::in);
+		while (binaryFile.read((char*)&object, sizeof(employee)))
+		{
+			std::clog << object.id << "\t\t\t" << object.name << "\t\t\t" << object.hours << '\n';
+		}
+		binaryFile.close();
+	}
+
+	void receiveDataReporter()
+	{
+		std::cout << "\nInput the text file name: ";
+		std::cin >> textFileName;
+		if (!checker(3)) { terminate(3); }
+		std::cout << "Input the amount of wages: ";
+		std::cin >> wages;
+		if (!checker(4)) { terminate(4); }
 	}
 
 	void openReporter()
 	{
+		cmdReporter = "reporter.exe " + binaryFileName + " " + textFileName + " " + wages;
+		cmdReporter_ = std::wstring(cmdReporter.begin(), cmdReporter.end());
 
+		cmdReporterCode = &cmdReporter_[0];
+
+		try
+		{
+			if (!CreateProcess(nullptr, cmdReporterCode, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &settingsInfo, &processInfo))
+			{
+				std::cerr << "Process reporter.exe failed. Error code: " << GetLastError() << "\n";
+				exit(GetLastError());
+			}
+		}
+		catch (...)
+		{
+			std::cerr << "Process reporter.exe failed. Error code: " << GetLastError() << "\n";
+			exit(GetLastError());
+		}
+
+		WaitForSingleObject(processInfo.hProcess, INFINITE);
+
+		CloseHandle(processInfo.hProcess);
+		CloseHandle(processInfo.hThread);
+
+		std::clog << "\Text file created.";
 	}
 }
 
 int main(int argc, char* argv[])
 {
-	project::receiveData();
+	std::clog << "Starting project...\n\n";
+	project::receiveDataCreator();
 	project::openCreator();
+	project::receiveDataReporter();
+	project::openReporter();
 	return 0;
 }
 
