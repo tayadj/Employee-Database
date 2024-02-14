@@ -4,11 +4,9 @@
 #include <fstream>
 #include <string>
 
-static int globalId = 0;
-
 struct employee
 {
-	const int	id = ++globalId;
-	char		name[10];
+	int			id;
+	char		name[100];
 	double		hours;
 };

@@ -1,4 +1,4 @@
-#include "preset.h"
+﻿#include "preset.h"
 
 namespace project
 {
@@ -28,7 +28,7 @@ namespace project
 			}
 			case 2:
 			{
-				std::cerr << "Oops! The number of records must be a positive number.";
+				std::cerr << "Oops! The amount of records must be a positive number.";
 				exit(0);
 			}
 		}
@@ -41,7 +41,7 @@ namespace project
 		{
 			case 1:
 			{
-				
+
 				if (binaryFileName.length() < 5 || binaryFileName.substr(binaryFileName.length() - 4) != ".bin")
 				{
 					result = false;
@@ -93,18 +93,26 @@ namespace project
 
 		ZeroMemory(&settingsInfo, sizeof(STARTUPINFO));
 		settingsInfo.cb = sizeof(STARTUPINFO);
+		ZeroMemory(&processInfo, sizeof(PROCESS_INFORMATION));
 
 		try
 		{
-			CreateProcess(nullptr, cmdProcessCode, nullptr, nullptr, TRUE, CREATE_NEW_CONSOLE, nullptr, nullptr, &settingsInfo, &processInfo);
+			if (!CreateProcess(nullptr, cmdProcessCode, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &settingsInfo, &processInfo))
+			{
+				std::cerr << "Process creator.exe failed. Error code: " << GetLastError() << "\n";
+				exit(GetLastError());
+			}
 		}
 		catch (...)
 		{
-			std::cerr << "Process creator.exe failed.\n";
+			std::cerr << "Process creator.exe failed. Error code: " << GetLastError() << "\n";
 			exit(GetLastError());
 		}
 
 		WaitForSingleObject(processInfo.hProcess, INFINITE);
+
+		CloseHandle(processInfo.hProcess);
+		CloseHandle(processInfo.hThread);
 	}
 
 	void openReporter()
@@ -119,6 +127,5 @@ int main(int argc, char* argv[])
 	project::openCreator();
 	return 0;
 }
-
 
 
